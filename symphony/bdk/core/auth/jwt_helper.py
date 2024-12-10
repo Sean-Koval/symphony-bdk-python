@@ -13,6 +13,10 @@ JWT_ENCRYPTION_ALGORITHM = "RS512"
 
 DEFAULT_EXPIRATION_SECONDS = (5 * 50) - 10
 
+# Constants for PyJWT decoding options
+DECODE_OPTIONS = {
+    "verify_sub": False,  # PyJWT 2.10+ enforces "sub" as a string. Disable validation since our "sub" is an integer.
+}
 
 def create_signed_jwt(private_key_config: BdkRsaKeyConfig, username: str, expiration: int = None) -> str:
     """Creates a JWT with the provided user name and expiration date, signed with the provided private key.
@@ -56,7 +60,7 @@ def validate_jwt(jwt_token: str, certificate: str, allowed_audience: str) -> dic
     """
     try:
         return jwt.decode(jwt_token, _parse_public_key_from_x509_cert(certificate),
-                          algorithms=[JWT_ENCRYPTION_ALGORITHM], audience=allowed_audience)
+                          algorithms=[JWT_ENCRYPTION_ALGORITHM], audience=allowed_audience, options=DECODE_OPTIONS)
     except (jwt.DecodeError, jwt.ExpiredSignatureError) as exc:
         raise AuthInitializationError("Unable to validate the jwt") from exc
 
